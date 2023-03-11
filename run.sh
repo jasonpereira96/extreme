@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N pi_jason
-#PBS -l walltime=00:02:00
+#PBS -l walltime=00:00:50
 #PBS -l nodes=2:ppn=4
 #PBS -q edu_shared
 #PBS -j oe
