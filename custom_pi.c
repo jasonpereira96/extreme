@@ -28,11 +28,11 @@ void broadcast(int* data, int root, MPI_Comm comm) {
             if ((myid & power(2, i)) == 0) {
                 int dest = myid ^ power(2, i);
                 // send()
-                printf("id: %d, sending to %d\n", myid, dest);
+                // printf("id: %d, sending to %d\n", myid, dest);
                 MPI_Send(data, 1, MPI_INT, dest, TAG, comm);
             } else {
                 int source = myid ^ power(2, i);
-                printf("id: %d, recv from %d\n", myid, source);
+                // printf("id: %d, recv from %d\n", myid, source);
                 MPI_Recv(data, 1, MPI_INT, source, TAG, comm, MPI_STATUS_IGNORE);
             }
         }
@@ -56,12 +56,15 @@ void reduce(double* data, double* acc, int root, MPI_Comm comm) {
             } else {
                 int source = myid ^ power(2, i);
                 // recv()
-                int recved = 0;
+                double recved = 0.0;
                 MPI_Recv(&recved, 1, MPI_DOUBLE, source, TAG, comm, MPI_STATUS_IGNORE);
                 sum = sum + recved;
             }
         }
         mask = mask ^ power(2, i);
+    }
+    if (myid == root) {
+        *acc = sum;
     }
 }
 
@@ -86,10 +89,10 @@ char *argv[];
     }
     printf("My id is: %d\n", myid);
 
-    printf("Before broadcast id: %d | n: %d\n", myid, n);
+    // printf("Before broadcast id: %d | n: %d\n", myid, n);
     // MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     broadcast(&n, 0, MPI_COMM_WORLD);
-    printf("After broadcast id: %d | n: %d\n", myid, n);
+    // printf("After broadcast id: %d | n: %d\n", myid, n);
 
     h = 1.0 / (double)n;
     sum = 0.0;
@@ -102,7 +105,7 @@ char *argv[];
     // MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     reduce(&mypi, &pi, 0, MPI_COMM_WORLD);
     if (myid == 0)
-        printf("PI4 is approximately %.16f, Error is %.16f\n", pi, fabs(pi - PI25DT));
+        printf("PI5 is approximately %.16f, Error is %.16f\n", pi, fabs(pi - PI25DT));
     MPI_Finalize();
 }
 
