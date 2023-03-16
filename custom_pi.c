@@ -2,6 +2,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+
+#define BILLION  1000000000.0
 
 int TAG = 1;
 
@@ -89,7 +92,9 @@ int main(int argc, char *argv[])  {
     int n;
     int exp;
     int P, ppn;
+    struct timespec start, end;
     double PI25DT = 3.141592653589793238462643;
+    double time_spent;
     double mypi, pi, h, sum, x, a;
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
@@ -101,6 +106,9 @@ int main(int argc, char *argv[])  {
         n = power(2, exp);
         P = atoi(argv[2]);
         ppn = atoi(argv[3]);
+    }
+    if (myid == 0) {
+        clock_gettime(CLOCK_REALTIME, &start);
     }
 
     // printf("My id is: %d\n", myid);
@@ -120,8 +128,24 @@ int main(int argc, char *argv[])  {
     mypi = h * sum;
     // MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     reduce(&mypi, &pi, 0, MPI_COMM_WORLD);
-    if (myid == 0)
-        printf("P: %d | ppn: %d | exp: %d | numprocs: %d | PI is approximately %.16f, Error is %.16f\n", P, ppn, exp, numprocs, pi, fabs(pi - PI25DT));
+
+    // time computation
+    if (myid == 0) {
+        clock_gettime(CLOCK_REALTIME, &end);
+        time_spent = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION;
+        printf("P: %d | ppn: %d | exp: %d | numprocs: %d | time spent: %lf | PI is approximately %.16f, Error is %.16f\n", P, ppn, exp, numprocs, 
+            time_spent, pi, fabs(pi - PI25DT));
+
+        FILE *fp;
+        // sprintf(str, "log-%d.txt", fileId);
+        fp = fopen("log.txt", "a+");
+        if (fp == NULL) return -1;
+        // fprintf(fp, "P: %d | ppn: %d | exp: %d | numprocs: %d | time spent: %lf | PI is approximately %.16f, Error is %.16f\n", P, ppn, exp, numprocs, 
+        // time_spent, pi, fabs(pi - PI25DT));
+
+        fprintf(fp, "%d,%d,%d,%d,%lf,%.16f,%.16f\n", P, ppn, exp, numprocs, time_spent, pi, fabs(pi - PI25DT));
+        fclose(fp);
+    }
     MPI_Finalize();
 }
 
