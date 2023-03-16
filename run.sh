@@ -20,5 +20,5 @@ mpicc custom_pi.c -o pi_jason
 # Run mpi job
 #
 # mpirun -np $PBS_NP ./pi_jason
-mpirun ./pi_jason
+mpirun ./pi_jason $exp $P $ppn
 
