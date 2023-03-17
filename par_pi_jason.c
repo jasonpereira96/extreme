@@ -111,9 +111,11 @@ int main(int argc, char *argv[])  {
         ppn = atoi(argv[3]);
         jobNumber = atoi(argv[4]);
         groupId = argv[5];
+        printf("a1\n");
     }
     if (myid == 0) {
         start = MPI_Wtime();
+        printf("a2\n");
     }
 
     // printf("My id is: %d\n", myid);
@@ -125,6 +127,7 @@ int main(int argc, char *argv[])  {
 
     if (myid == 0) {
         after_broadcast = MPI_Wtime();
+        printf("a3\n");
     }
 
     h = 1.0 / (double)n;
@@ -144,7 +147,9 @@ int main(int argc, char *argv[])  {
 
     FILE *tempfp;
     if (myid == 0) {
+        printf("a4\n");
         if (jobNumber == 1) {
+            printf("a5\n");
             // write to temp file
             tempfp = fopen("temp.txt", "ab+");
             if (tempfp == NULL) return -1;
@@ -153,6 +158,7 @@ int main(int argc, char *argv[])  {
             fclose(tempfp);
         } else {
             // read from temp file
+            printf("a6\n");
             tempfp = fopen("temp.txt", "r");
             if (tempfp == NULL) return -1;
             fscanf(tempfp, "%lf", &sequential_time);
@@ -162,6 +168,7 @@ int main(int argc, char *argv[])  {
 
     // time computation
     if (myid == 0) {
+        printf("a7\n");
         time_spent_including_broadcast = end - start;
         time_spent = end - after_broadcast;
 
