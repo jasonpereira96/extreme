@@ -93,6 +93,7 @@ int main(int argc, char *argv[])  {
     int exp;
     int P, ppn;
     int jobNumber;
+    char* groupId;
     double sequential_time;
     double start, end, after_broadcast;
     double PI25DT = 3.141592653589793238462643;
@@ -109,6 +110,7 @@ int main(int argc, char *argv[])  {
         P = atoi(argv[2]);
         ppn = atoi(argv[3]);
         jobNumber = atoi(argv[4]);
+        groupId = argv[5];
     }
     if (myid == 0) {
         start = MPI_Wtime();
@@ -144,7 +146,7 @@ int main(int argc, char *argv[])  {
     if (myid == 0) {
         if (jobNumber == 1) {
             // write to temp file
-            tempfp = fopen("temp.txt", "a");
+            tempfp = fopen("temp.txt", "ab+");
             if (tempfp == NULL) return -1;
             sequential_time = end - start; // time_spent_including_broadcast
             fprintf(tempfp, "%lf", sequential_time); 
@@ -173,14 +175,14 @@ int main(int argc, char *argv[])  {
             P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency);
 
         FILE *fp;
-        fp = fopen("log.txt", "a");
+        fp = fopen("par_pi_op_jason.txt", "a");
         if (fp == NULL) return -1;
-        
+
         // fprintf(fp, "P: %d | ppn: %d | exp: %d | numprocs: %d | time spent including broadcast: %lf | time spent not including broadcast: %lf | PI is approximately %.16f, Error is %.16f, Speedup: %lf, Efficiency: %lf\n",
         //     P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency);
 
-        fprintf(fp, "%d,%d,%d,%d,%lf,%lf,%.16f,%.16f,%lf,%lf\n",
-            P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency);
+        fprintf(fp, "%d,%d,%d,%d,%lf,%lf,%.16f,%.16f,%lf,%lf,%s\n",
+            P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency, groupId);
 
         fclose(fp);
     }

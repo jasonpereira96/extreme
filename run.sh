@@ -15,10 +15,10 @@ module load MPICH/3.3.2-GCC-9.3.0
 #
 # Build mpi job
 #
-mpicc custom_pi.c -o pi_jason
+# No need to build
 #
 # Run mpi job
 #
 # mpirun -np $PBS_NP ./pi_jason
-mpirun ./pi_jason $exp $P $ppn $id
+mpirun ./par_pi_jason $exp $P $ppn $id $groupId
 
