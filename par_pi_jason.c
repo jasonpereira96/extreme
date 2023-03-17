@@ -125,7 +125,6 @@ int main(int argc, char *argv[])  {
 
     if (myid == 0) {
         after_broadcast = MPI_Wtime();
-        printf("a3\n");
     }
 
     h = 1.0 / (double)n;
