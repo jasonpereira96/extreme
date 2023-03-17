@@ -1,4 +1,5 @@
 rm par_pi_op_jason.txt
+rm par_pi_op_simple_jason.txt
 rm temp.txt
 make clean
 make all

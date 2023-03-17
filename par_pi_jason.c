@@ -111,11 +111,9 @@ int main(int argc, char *argv[])  {
         ppn = atoi(argv[3]);
         jobNumber = atoi(argv[4]);
         groupId = argv[5];
-        printf("a1\n");
     }
     if (myid == 0) {
         start = MPI_Wtime();
-        printf("a2\n");
     }
 
     // printf("My id is: %d\n", myid);
@@ -147,9 +145,7 @@ int main(int argc, char *argv[])  {
 
     FILE *tempfp;
     if (myid == 0) {
-        printf("a4\n");
         if (jobNumber == 1) {
-            printf("a5\n");
             // write to temp file
             tempfp = fopen("temp.txt", "ab+");
             if (tempfp == NULL) return -1;
@@ -158,7 +154,6 @@ int main(int argc, char *argv[])  {
             fclose(tempfp);
         } else {
             // read from temp file
-            printf("a6\n");
             tempfp = fopen("temp.txt", "r");
             if (tempfp == NULL) return -1;
             fscanf(tempfp, "%lf", &sequential_time);
@@ -168,7 +163,6 @@ int main(int argc, char *argv[])  {
 
     // time computation
     if (myid == 0) {
-        printf("a7\n");
         time_spent_including_broadcast = end - start;
         time_spent = end - after_broadcast;
 
@@ -185,11 +179,11 @@ int main(int argc, char *argv[])  {
         fp = fopen("par_pi_op_jason.txt", "a");
         if (fp == NULL) return -1;
 
-        // fprintf(fp, "P: %d | ppn: %d | exp: %d | numprocs: %d | time spent including broadcast: %lf | time spent not including broadcast: %lf | PI is approximately %.16f, Error is %.16f, Speedup: %lf, Efficiency: %lf\n",
-        //     P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency);
+        fprintf(fp, "P: %d | ppn: %d | exp: %d | numprocs: %d | time spent including broadcast: %lf | time spent not including broadcast: %lf | PI is approximately %.16f, Error is %.16f, Speedup: %lf, Efficiency: %lf\n",
+            P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency);
 
-        fprintf(fp, "%d,%d,%d,%d,%lf,%lf,%.16f,%.16f,%lf,%lf,%s\n",
-            P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency, groupId);
+        // fprintf(fp, "%d,%d,%d,%d,%lf,%lf,%.16f,%.16f,%lf,%lf,%s\n",
+            // P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency, groupId);
 
         fclose(fp);
     }
