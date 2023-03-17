@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N pi_jason
-#PBS -l walltime=00:03:00
+#PBS -l walltime=00:00:15
 #PBS -l nodes=2:ppn=4
 #PBS -q edu_shared
 #PBS -j oe
@@ -20,5 +20,5 @@ mpicc custom_pi.c -o pi_jason
 # Run mpi job
 #
 # mpirun -np $PBS_NP ./pi_jason
-mpirun ./pi_jason $exp $P $ppn
+mpirun ./pi_jason $exp $P $ppn $id
 

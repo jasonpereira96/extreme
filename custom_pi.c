@@ -92,9 +92,11 @@ int main(int argc, char *argv[])  {
     int n;
     int exp;
     int P, ppn;
-    struct timespec start, end;
+    int jobNumber;
+    double sequential_time;
+    double start, end, after_broadcast;
     double PI25DT = 3.141592653589793238462643;
-    double time_spent;
+    double time_spent, time_spent_including_broadcast;
     double mypi, pi, h, sum, x, a;
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
@@ -106,9 +108,10 @@ int main(int argc, char *argv[])  {
         n = power(2, exp);
         P = atoi(argv[2]);
         ppn = atoi(argv[3]);
+        jobNumber = atoi(argv[4]);
     }
     if (myid == 0) {
-        clock_gettime(CLOCK_REALTIME, &start);
+        start = MPI_Wtime();
     }
 
     // printf("My id is: %d\n", myid);
@@ -117,6 +120,10 @@ int main(int argc, char *argv[])  {
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     // broadcast(&n, 0, MPI_COMM_WORLD);
     // printf("After broadcast id: %d | n: %d\n", myid, n);
+
+    if (myid == 0) {
+        after_broadcast = MPI_Wtime();
+    }
 
     h = 1.0 / (double)n;
     sum = 0.0;
@@ -129,21 +136,52 @@ int main(int argc, char *argv[])  {
     // MPI_Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     reduce(&mypi, &pi, 0, MPI_COMM_WORLD);
 
+    if (myid == 0) {
+        end = MPI_Wtime();
+    }
+
+    FILE *tempfp;
+    if (myid == 0) {
+        if (jobNumber == 1) {
+            // write to temp file
+            tempfp = fopen("temp.txt", "a");
+            if (tempfp == NULL) return -1;
+            sequential_time = end - start; // time_spent_including_broadcast
+            fprintf(tempfp, "%lf", sequential_time); 
+            fclose(tempfp);
+        } else {
+            // read from temp file
+            tempfp = fopen("temp.txt", "r");
+            if (tempfp == NULL) return -1;
+            fscanf(tempfp, "%lf", &sequential_time);
+            fclose(tempfp);
+        }
+    }
+
     // time computation
     if (myid == 0) {
-        clock_gettime(CLOCK_REALTIME, &end);
-        time_spent = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION;
-        printf("P: %d | ppn: %d | exp: %d | numprocs: %d | time spent: %lf | PI is approximately %.16f, Error is %.16f\n", P, ppn, exp, numprocs, 
-            time_spent, pi, fabs(pi - PI25DT));
+        time_spent_including_broadcast = end - start;
+        time_spent = end - after_broadcast;
+
+        // Calculating speedup and efficiency
+        double speedup, efficiency;
+        // Speedup = Serial Execution Time / Parallel Execution Time.
+        speedup = sequential_time / time_spent_including_broadcast;
+        efficiency = speedup / (P * ppn);
+
+        printf("P: %d | ppn: %d | exp: %d | numprocs: %d | time spent including broadcast: %lf | time spent not including broadcast: %lf | PI is approximately %.16f, Error is %.16f, Speedup: %lf, Efficiency: %lf\n",
+            P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency);
 
         FILE *fp;
-        // sprintf(str, "log-%d.txt", fileId);
-        fp = fopen("log.txt", "a+");
+        fp = fopen("log.txt", "a");
         if (fp == NULL) return -1;
-        // fprintf(fp, "P: %d | ppn: %d | exp: %d | numprocs: %d | time spent: %lf | PI is approximately %.16f, Error is %.16f\n", P, ppn, exp, numprocs, 
-        // time_spent, pi, fabs(pi - PI25DT));
+        
+        // fprintf(fp, "P: %d | ppn: %d | exp: %d | numprocs: %d | time spent including broadcast: %lf | time spent not including broadcast: %lf | PI is approximately %.16f, Error is %.16f, Speedup: %lf, Efficiency: %lf\n",
+        //     P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency);
 
-        fprintf(fp, "%d,%d,%d,%d,%lf,%.16f,%.16f\n", P, ppn, exp, numprocs, time_spent, pi, fabs(pi - PI25DT));
+        fprintf(fp, "%d,%d,%d,%d,%lf,%lf,%.16f,%.16f,%lf,%lf\n",
+            P, ppn, exp, numprocs, time_spent_including_broadcast, time_spent, pi, fabs(pi - PI25DT), speedup, efficiency);
+
         fclose(fp);
     }
     MPI_Finalize();
